@@ -41,3 +41,11 @@ samtools index ${out_prefix}_markdup.bam
 
 rm ${out_prefix}_namesorted.bam
 ```
+
+
+Following mapping, read depth was assessed with mosdepth 
+```
+mosdepth -n -x
+```
+
+Samples ranged in coverage from .42-61x.
