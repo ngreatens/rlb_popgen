@@ -49,3 +49,48 @@ mosdepth -n -x
 ```
 
 Samples ranged in coverage from .42-61x.
+
+Add RGs
+```
+#!/bin/bash
+
+module load \
+        java/17 \
+        picard/3.0.0
+
+
+input=$1
+id=$2
+output=${1%.*}_new.bam
+
+#library
+RGLB=${id}_1
+
+#platform
+RGPL=ILLUMINAHISEQ2
+
+#sample_name
+RGSM=${id}
+
+#ID
+RGID=${id}
+
+#platform unit e.g. run barcode
+RGPU=${RGID}_001
+
+java -Xmx16G -jar /software/el9/apps/picard/3.0.0/picard.jar \
+\
+AddOrReplaceReadGroups \
+        --INPUT $input\
+        --OUTPUT $output \
+        --RGLB $RGLB \
+        --RGPL $RGPL \
+        --RGSM $RGSM \
+        --RGID $RGID \
+        --RGPU $RGPU
+
+
+ml samtools
+
+samtools index ${1%.*}_new.bam
+```
