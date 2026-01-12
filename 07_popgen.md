@@ -74,7 +74,52 @@ awk '{
 paste samples_names.txt tmp
 ```
 
+```
+mkdir 6_pop
 
+for i in {1..6}; do 
+	mkdir 6_pop/list_${i}
+	awk -v var="$i" '($2 == var) {print $1}' tmp2 > 6_pop/list_${i}/list
+done
+
+for i in {1..6}; do 
+	bcftools view -S 6_pop/list_${i}/list SNPs_biallelic.vcf.recode.vcf > 6_pop/list_${i}/pop_${i}.vcf
+done
+
+for i in {1..6}; do 
+	cd 6_pop/list_${i}
+	plink2 --vcf pop_${i}.vcf --make-pgen --out sorted_pgen --sort-vars --rename-chrs /90daydata/fdwsru_fungal/Nick/rlb_popgen/07_popgen/rename.txt  --chr-set 27 --mind .5 --geno 0.1 --vcf-half-call missing --maf .2
+	plink2         -pfile sorted_pgen         --ld-window 100         --ld-window-kb 1000         --r2-phased cols=+dprimeabs         --ld-window-r2 0
+	cd ../../
+done
+```
+
+* Run R script for each plink2.vcor
+
+```
+df <- read.table('plink2.vcor', header = FALSE)
+BINSIZE=1000
+df$dist <- df$V5 - df$V2
+df$bin <- round(df$dist/BINSIZE, 0)
+
+library(plyr)
+df2 <- ddply(df, .(bin), summarise,
+      meanr2 = mean(V7))
+df3 <- ddply(df, .(bin), summarise,
+      meandprime = mean(V8))
+
+plot(df2$bin*BINSIZE/1000, df2$meanr2, xlab="Physical distance (kbp)", ylab="r-squared", main="r-squared decay rate", ylim = c(0, 1))
+plot(df2$bin*BINSIZE/1000, df3$meandprime, xlab="Physical distance (kbp)", ylab="D'", main="D' decay rate", ylim = c(0, 1))
+
+
+png(filename = "r2_vs_dist.png", width = 400, height = 300, units = "px")
+plot(df2$bin*BINSIZE/1000, df2$meanr2, xlab="Physical distance (kbp)", ylab="r-squared", main="r-squared decay rate", ylim = c(0, 1))
+dev.off()
+
+png(filename = "Dprime_vs_dist.png", width = 400, height = 300, units = "px")
+plot(df2$bin*BINSIZE/1000, df3$meandprime, xlab="Physical distance (kbp)", ylab="D'", main="D' decay rate", ylim = c(0, 1))
+dev.off()
+```
 
 
 
