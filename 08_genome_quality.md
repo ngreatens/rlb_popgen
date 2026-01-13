@@ -20,6 +20,7 @@ compleasm run \
 
 Resutls show high completion and low duplication:
 
+```
 CHIP77
 ## lineage: dothideomycetes_odb10
 S:99.71%, 3775
