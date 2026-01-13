@@ -78,7 +78,7 @@ plink2 --vcf $VCF --make-pgen --out sorted_pgen --sort-vars --rename-chrs rename
 plink2 --pfile sorted_pgen --make-bed --out sorted_pgen
 ```
 
-* Assess population structure with admixture (submit commands to scheduler)
+## Assess population structure with admixture (submit commands to scheduler)
 ```
 for i in {2..11}; do admixture --cv sorted_pgen.bed ${i} > log${i}.out; done
 awk '/CV/ {print $3,$4}' *out 
@@ -104,21 +104,13 @@ get names of samples from .fam file produced by plink
 cut -f2 *fam > sample_names.txt
 ```
 
-Using .Q files produced by admixture to get which pop samples belong to 
-
+to visualize easily with tree, make tables for each of the .Q outputs:
 ```
-awk '{
-    max_val = -1e9;  # Initialize max_val to a very small number
-    max_col = 0;     # Initialize max_col index
-    for (i = 1; i <= NF; i++) {
-        if ($i > max_val) {
-            max_val = $i;
-            max_col = i;
-        }
-    }
-    print max_col;
-}' $1 > tmp
-paste samples_names.txt tmp
+for file in *Q; do  i=$(echo $file | cut -f2 -d '.'); paste sample_names.txt $file | sed 's/ /\t/g' > admixture_pop${i}.tsv; done
+```
+
+
+
 ```
 
 ## Visualize pupulation structure on tree
@@ -256,6 +248,8 @@ png(filename = "Dprime_vs_dist.png", width = 400, height = 300, units = "px")
 plot(df2$bin*BINSIZE/1000, df3$meandprime, xlab="Physical distance (kbp)", ylab="D'", main="D' decay rate", ylim = c(0, 1))
 dev.off()
 ```
+
+Everything summarized with images in a powerpoint file in rlb_phylogenomic 01_13_26...
 
 
 
