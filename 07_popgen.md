@@ -11,6 +11,53 @@ cd phylogeny; ml iq_tree
 iqtree2 -s SNPs_biallelic.min4.phy --seqtype DNA -m GTR
 ```
 
+Inspection of the tree shows mostly long branches, but with several very short branches typical of sexual reproduction
+The following groups of samples are clones
+
+```
+KAB3_22
+KAB7_22
+NAM_GN_HARUN
+KAB8
+KAB3
+
+KABB_2
+KAB_DH_11
+KAB_MR_22
+
+NAM_5
+NAM_6
+
+KABB_1
+NAL_1
+
+NAMA_3
+NAMA1
+
+MPO_P24
+MPO_P25
+
+MPO_P12
+MPO_P14
+
+Pg_43
+Pg_42
+
+Pg_36_3
+PG_36
+
+AH_T_K1
+AHTK
+
+CHO_SS_P28
+CHO_55_P28
+CHO_SS_P18
+
+Pg_34
+Pg_31
+```
+
+
 
 ## prepare file for plink
 
@@ -50,7 +97,7 @@ Results:
 (K=11): 0.41541
 ```
 
-6 has best k-value 
+6 has best k-value, with 4-9 close
 
 get names of samples from .fam file produced by plink
 ```
@@ -73,6 +120,95 @@ awk '{
 }' $1 > tmp
 paste samples_names.txt tmp
 ```
+
+## Visualize pupulation structure on tree
+
+``` {r}
+# SET WD
+setwd('/90daydata/fdwsru_fungal/Nick/rlb_popgen/09_tree')
+
+
+library(ggtree)
+
+
+#### Format data for tree
+
+# read in table of mat types
+mat_types <- read.table('mat_types.tsv', header = TRUE)
+row.names(mat_types) <- mat_types$Sample
+mat_types$Sample <- NULL
+
+# table from admixture
+# prepare by pasting col 2 of .fam file from plink with admixture results and sed replacing space with tab
+
+popdata='admixture_pop4.tsv'
+
+pop_data <- read.table(popdata)
+pop_data <- as.data.frame(pop_data, row.names = pop_data$V1)
+pop_data$V1 <- NULL
+
+#rename columns 
+colnames <- c()
+for (i in 1:ncol(pop_data)) {colnames <- append(colnames, i)}
+colnames(pop_data) <- colnames
+
+ 
+
+num_samples <- length(row_number(pop_data))
+num_pops <- ncol(pop_data)
+num_rows <- num_samples * num_pops
+pop_table <- data.frame(matrix(ncol = 3, nrow = num_rows))
+colnames(pop_table) <- c("Samples", "Pop", "p")
+pops <- colnames
+
+counter_1 <- 1
+for (i in 1:num_samples){
+  for (j in 1:num_pops){
+    pop_table[counter_1, 1] <- rownames(pop_data)[i]
+    pop_table[counter_1, 2] <- pops[j]
+    pop_table[counter_1, 3] <- pop_data[i,j]
+    counter_1 <- counter_1 + 1
+  }
+}
+
+pop_table$Pop <- as.factor(pop_table$Pop)
+
+# merge tables 
+df <- merge(mat_types, pop_data, by = "row.names")
+df$MAT <- as.factor(df$MAT)
+
+
+#read in tree
+tree <- read.tree("tree.nwk")
+
+#midpoint root tree 
+library(phytools)
+library(ggplot2)
+library(ggstance)
+tree <- midpoint.root(tree)
+
+textsize=1.5
+
+p <- ggtree(tree)  %<+% df +
+     geom_tiplab(
+      aes(color = MAT), #format excel with a Color column
+      parse = TRUE,
+      align = TRUE,
+      size = textsize, key_glyph = "rect"
+    ) +  xlim_expand(.3, 'Tree') +
+  geom_facet(
+    panel = 'pops', 
+    data = pop_table, 
+	  geom = geom_barh, 
+  	mapping = aes(x = p, fill = Pop), 
+    stat='identity', width = .8) +
+	  theme_tree2(
+	    strip.background = element_blank(), 
+	    strip.text.x = element_blank()
+	    ) + xlim_expand(4, 'pops')
+```
+
+
 
 ```
 mkdir 6_pop
