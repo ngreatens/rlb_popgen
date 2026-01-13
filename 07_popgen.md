@@ -97,7 +97,7 @@ Results:
 (K=11): 0.41541
 ```
 
-6 has best k-value, with 4-9 close
+6 has best k-value, with 4-9 close. Four consistent with phylogeny.
 
 get names of samples from .fam file produced by plink
 ```
