@@ -1,4 +1,4 @@
-Samples with greater than 5x coverage were included in variant calling
+Samples with greater than 15x coverage were included in variant calling
 
 Eight samples were excluded based on coverage. Additionally, EMETT_Q was excluded based on the presence of both MAT genes, indicating either diploidy or contamination
 
